@@ -70,82 +70,12 @@ The app shows a quality warning when R² is below 0.8 or the local prediction di
 
 ## Code excerpts
 
-The excerpts below are selected from the private implementation. They are not runnable on their own.
+The files in [`code/`](code/) are selected from the private implementation, with comments explaining each part. They are not runnable on their own.
 
-### 1. Early-activity window
-
-This selects each learner's activity from their first recorded day through 14 days later. It is the core of the feature design.
-
-```python
-# Find each learner's first recorded activity date.
-events["date"] = pd.to_datetime(events["date"])
-first_day = events.groupby("user_uuid", as_index=False)["date"].min()
-first_day = first_day.rename(columns={"date": "first_event_date"})
-events = events.merge(first_day, on="user_uuid", how="left")
-
-# Keep only activity on or before 14 days after that first date (inclusive).
-events["cutoff_date"] = events["first_event_date"] + pd.Timedelta(days=14)
-early = events.loc[events["date"] <= events["cutoff_date"]].copy()
-```
-
-### 2. Shared network with two outputs
-
-One dense layer learns a representation used by both tasks. Each output head is trained with its own loss.
-
-```python
-inputs = keras.Input(shape=(input_dim,), name="input")
-
-# Shared representation used by both tasks; dropout reduces overfitting.
-shared = keras.layers.Dense(128, activation="relu")(inputs)
-shared = keras.layers.Dropout(0.5)(shared)
-
-# Grade head: four class probabilities (D, C, B, A).
-grade_output = keras.layers.Dense(4, activation="softmax", name="grade_output")(shared)
-# Certificate head: a single probability.
-cert_output = keras.layers.Dense(1, activation="sigmoid", name="cert_output")(shared)
-
-model = keras.Model(inputs=inputs, outputs=[grade_output, cert_output])
-```
-
-### 3. LIME quality check
-
-LIME's local fit is checked before its explanation is shown. This is the mechanism that flags explanations as unreliable.
-
-```python
-@staticmethod
-def _add_explanation_quality(result: dict[str, Any], probability: float) -> None:
-    # Compare the local surrogate's prediction with the model's own probability.
-    error = abs(result["local_surrogate_prediction"] - probability)
-    result["surrogate_absolute_error"] = float(error)
-
-    # Flag the explanation when the surrogate fits poorly (R² < 0.8) or
-    # disagrees with the model by more than 0.1.
-    if result["local_fidelity_r2"] < 0.8 or error > 0.1:
-        result["quality_warning"] = (
-            "The local approximation may be unreliable: R² is below 0.8 or the "
-            "surrogate differs from the model probability by more than 0.1."
-        )
-    else:
-        result["quality_warning"] = None
-```
-
-### 4. Upload and prediction flow in the UI
-
-The Streamlit app validates both uploads, then passes them to the shared inference service. The optional LIME explanation is requested with a learner ID.
-
-```python
-# Validate both CSVs and enforce the two-learner limit.
-learners, activity = load_uploads(
-    learners_file.getvalue(), activity_file.getvalue(), max_learners=MAX_LEARNERS
-)
-
-# Run the model and, if an ID was entered, a LIME explanation for that learner.
-result = service().predict(learners, activity, explain_id or None)
-
-# A quality warning is shown next to any LIME explanation.
-if explanation["quality_warning"]:
-    st.warning(explanation["quality_warning"])
-```
+- [`01_early_activity_window.py`](code/01_early_activity_window.py): selects each learner's activity from their first recorded day through 14 days later.
+- [`02_shared_two_head_network.py`](code/02_shared_two_head_network.py): one shared layer feeding the grade and certificate heads.
+- [`03_lime_quality_check.py`](code/03_lime_quality_check.py): checks LIME's local fit and flags unreliable explanations.
+- [`04_ui_prediction_flow.py`](code/04_ui_prediction_flow.py): the Streamlit upload, prediction, and LIME warning flow.
 
 ## Technologies and boundaries
 
