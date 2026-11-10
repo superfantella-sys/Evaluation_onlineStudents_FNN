@@ -1,6 +1,6 @@
 # Early Learner Outcomes: Multi-Task Neural Network
 
-This project explores whether a learner's first two weeks of activity in an online course can help predict two outcomes: whether the learner earns a **certificate**, and their **final grade band** (D, C, B, or A). It is an educational prototype for early outreach, not an automated decision system.
+This project explores whether a learner's first two weeks of activity in an online course can help predict two outcomes: whether the learner earns a **certificate**, and their **final grade band** (D, C, B, or A). It is an educational tool for early outreach, not an automated decision system.
 
 This repository is a **portfolio walkthrough**. It contains selected, commented code excerpts, the held-out evaluation results, and a link to a hosted demo. The full implementation, data, trained model, and preprocessor are kept private.
 
@@ -32,7 +32,7 @@ The model and preprocessor are not published, so the demo cannot be run locally 
 
 ## Evaluation results
 
-These results come from a held-out test split of **255 rows**, about 20% of the 1,272-row modeling dataset. The split was made by row, so the same learner can appear in more than one split when they have several course rows. A learner-grouped split is a planned next step. These results describe this test split only and do not guarantee performance on a new population.
+These results come from a held-out test split of **255 rows**, about 20% of the 1,272-row modeling dataset. The split was made by row, so the same learner can appear in more than one split when they have several course rows. A learner-grouped split is a planned next step. These results describe this test split only. Performance on other courses or learner groups has not been measured.
 
 Certificate prediction, at a probability threshold of 0.5:
 
@@ -95,4 +95,4 @@ The files in [`code/`](code/) are selected from the private implementation, with
 - TensorFlow/Keras, pandas, scikit-learn, LIME, Streamlit, Docker, and Azure Container Apps.
 - Not included: customer data, learner-level records, engineered learner data, customer identifiers, trained model files, preprocessor files, secrets, and the full implementation.
 
-This work is an educational prototype, not an automated decision or intervention system.
+This work is educational, not an automated decision or intervention system.
