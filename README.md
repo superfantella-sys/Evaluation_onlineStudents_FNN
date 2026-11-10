@@ -55,6 +55,19 @@ Grade-band prediction:
 
 Grade-band performance varies considerably by class. Of 54 learners predicted as band B, only 3 were correct.
 
+## Framework comparison: TensorFlow vs PyTorch
+
+To check whether the framework changes performance, the same network, data split, features, and training rules were rebuilt in PyTorch. Both used the same 255-row held-out test split. The PyTorch version ran on Azure Machine Learning with a conda environment pinned to `torch==2.14.1` and `pyarrow` for reading the Parquet inputs.
+
+| Metric (test, 255 rows) | TensorFlow | PyTorch (seed 42) |
+| --- | ---: | ---: |
+| Certificate accuracy | 91.8% | 91.8% |
+| Certificate ROC AUC | 0.951 | 0.953 |
+| Grade-band accuracy | 62.7% | 63.5% |
+| Grade-band log loss | 0.723 | 0.722 |
+
+The framework does not change performance in a meaningful way. The differences are within the variation from changing the random seed: across five PyTorch seeds, test certificate AUC ranged from 0.944 to 0.953 and grade accuracy from 62.0% to 65.5%. Only a single split was used, so these results should be read as a comparison, not a guarantee.
+
 ## LIME: what it does and its limits
 
 LIME explains one prediction by creating perturbed copies of the learner's inputs, scoring them with the model, and fitting a simple weighted model around that point. The output is a set of feature contributions for that learner.
